@@ -1,0 +1,19 @@
+# Build output
+x64/
+Debug/
+Release/
+
+# VS files
+.vs/
+*.vcxproj.user
+*.VC.db
+*.sdf
+*.opensdf
+*.ipch/
+*.log
+*.obj
+*.exe
+*.pdb
+*.tlog
+*.ilk
+*.idb
