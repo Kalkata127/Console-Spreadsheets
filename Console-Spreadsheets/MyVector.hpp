@@ -7,10 +7,13 @@ class MyVector {
 public:
 	MyVector();
 	MyVector(const MyVector& other);
+	MyVector(MyVector&& other) noexcept; 
 	MyVector& operator=(const MyVector<T>& other);
+	MyVector& operator=(MyVector<T>&& other) noexcept;
 	~MyVector();
 
 	void push_back(const T& element);
+	void push_back(T&& element); 
 	T pop_back();
 	void insert(const T& element, size_t position);
 	T& operator[](size_t index);
@@ -58,10 +61,10 @@ void MyVector<T>::resize()
 
 	for (size_t i = 0; i < size; i++)
 	{
-		temp[i] = data[i];
+		temp[i] = std::move(data[i]);
 	}
 
-	free();
+	delete[] data; 
 	data = temp;
 }
 
@@ -76,6 +79,16 @@ MyVector<T>::MyVector(const MyVector<T>& other)
 	copyFrom(other);
 }
 
+// Move constructor
+template<typename T>
+MyVector<T>::MyVector(MyVector<T>&& other) noexcept
+	: data(other.data), size(other.size), capacity(other.capacity)
+{
+	other.data = nullptr;
+	other.size = 0;
+	other.capacity = 0;
+}
+
 template<typename T>
 MyVector<T>& MyVector<T>::operator=(const MyVector<T>& other)
 {
@@ -85,6 +98,22 @@ MyVector<T>& MyVector<T>::operator=(const MyVector<T>& other)
 		copyFrom(other);
 	}
 
+	return *this;
+}
+
+template<typename T>
+MyVector<T>& MyVector<T>::operator=(MyVector<T>&& other) noexcept
+{
+	if (this != &other)
+	{
+		free();
+		data = other.data;
+		size = other.size;
+		capacity = other.capacity;
+		other.data = nullptr;
+		other.size = 0;
+		other.capacity = 0;
+	}
 	return *this;
 }
 
@@ -106,6 +135,17 @@ void MyVector<T>::push_back(const T& element)
 }
 
 template<typename T>
+void MyVector<T>::push_back(T&& element)
+{
+	if (size >= capacity)
+	{
+		resize();
+	}
+
+	data[size++] = std::move(element);
+}
+
+template<typename T>
 T MyVector<T>::pop_back()
 {
 	if (size <= 0)
@@ -113,7 +153,7 @@ T MyVector<T>::pop_back()
 		throw std::out_of_range("Size is 0, can't pop_back");
 	}
 	size--;
-	return data[size];
+	return std::move(data[size]);
 }
 
 template<typename T>
@@ -129,15 +169,15 @@ void MyVector<T>::insert(const T& element, size_t index)
 		resize();
 	}
 
-	T temp = data[index];
+	T temp = std::move(data[index]);
 	data[index] = element;
 	for (size_t i = index + 1; i < size; i++)
 	{
-		T temp1 = data[i];
-		data[i] = temp;
-		temp = temp1;
+		T temp1 = std::move(data[i]);
+		data[i] = std::move(temp);
+		temp = std::move(temp1);
 	}
-	data[size++] = temp;
+	data[size++] = std::move(temp);
 }
 
 template<typename T>
@@ -179,11 +219,11 @@ void MyVector<T>::print() const
 {
 	if (size <= 0)
 	{
-		std::cout << "Vector is empty\n";
+		cout << "Vector is empty\n";
 	}
 	for (size_t i = 0; i < size; i++)
 	{
-		std::cout << data[i] << " ";
+		cout << data[i] << " ";
 	}
-	std::cout << std::endl;
+	cout << std::endl;
 }
