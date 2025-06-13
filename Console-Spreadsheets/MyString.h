@@ -16,7 +16,7 @@ public:
     MyString(const char* string);
     MyString(const MyString& string);
 
-    virtual ~MyString();
+    ~MyString();
 
     size_t length() const;
     const char* data() const;
