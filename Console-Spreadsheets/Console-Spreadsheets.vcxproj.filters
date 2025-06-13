@@ -24,18 +24,21 @@
     <ClCompile Include="MyString.cpp">
       <Filter>Cpp Files</Filter>
     </ClCompile>
-    <ClCompile Include="ValueCell.h">
+    <ClCompile Include="ValueCell.hpp">
       <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CellFactory.cpp">
+      <Filter>Cpp Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseCell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MyVector.hpp">
+    <ClInclude Include="MyString.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MyString.h">
+    <ClInclude Include="CellFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

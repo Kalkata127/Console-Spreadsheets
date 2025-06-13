@@ -20,7 +20,7 @@ public:
 
     size_t length() const;
     const char* data() const;
-    char charAt(int index) const;
+    //char charAt(int index) const;
 
     MyString& operator=(const char* str);
     MyString& operator=(const MyString& string);

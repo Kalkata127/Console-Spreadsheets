@@ -1,5 +1,9 @@
 #include <iostream>
-#include "ValueCell.h"
+#include <memory>
+#include "CellFactory.h"
+#include "MyString.h"
+
+using namespace std;
 
 int main() {
     
