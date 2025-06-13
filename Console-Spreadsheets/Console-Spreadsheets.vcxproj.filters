@@ -24,6 +24,9 @@
     <ClCompile Include="MyString.cpp">
       <Filter>Cpp Files</Filter>
     </ClCompile>
+    <ClCompile Include="ValueCell.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseCell.h">

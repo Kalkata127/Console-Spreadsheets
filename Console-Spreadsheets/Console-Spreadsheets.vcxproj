@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyString.cpp" />
+    <ClCompile Include="ValueCell.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseCell.h" />

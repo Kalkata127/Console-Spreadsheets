@@ -1,6 +1,7 @@
 #include <iostream>
-#include "MyString.cpp"
+#include "ValueCell.h"
 
 int main() {
-
+    
+    return 0;
 }
