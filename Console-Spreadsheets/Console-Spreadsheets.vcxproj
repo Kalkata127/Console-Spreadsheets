@@ -130,6 +130,7 @@
     <ClCompile Include="CellFactory.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyString.cpp" />
+    <ClCompile Include="ReferenceCell.cpp" />
     <ClCompile Include="Table.cpp" />
     <ClCompile Include="ValueCell.hpp" />
   </ItemGroup>
@@ -138,6 +139,7 @@
     <ClInclude Include="CellFactory.h" />
     <ClInclude Include="MyString.h" />
     <ClInclude Include="MyVector.hpp" />
+    <ClInclude Include="ReferenceCell.h" />
     <ClInclude Include="Table.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

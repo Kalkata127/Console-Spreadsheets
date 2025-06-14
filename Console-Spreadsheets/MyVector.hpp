@@ -1,21 +1,23 @@
 #pragma once
 #include <stdexcept>
 #include <iostream>
+#include <utility> // For std::move
 
 template <typename T>
 class MyVector {
 public:
 	MyVector();
 	MyVector(const MyVector& other);
-	MyVector(MyVector&& other) noexcept; 
+	MyVector(MyVector&& other) noexcept; // Move constructor
 	MyVector& operator=(const MyVector<T>& other);
-	MyVector& operator=(MyVector<T>&& other) noexcept;
+	MyVector& operator=(MyVector<T>&& other) noexcept; // Move assignment
 	~MyVector();
 
 	void push_back(const T& element);
-	void push_back(T&& element); 
+	void push_back(T&& element); // Move version of push_back
 	T pop_back();
 	void insert(const T& element, size_t position);
+	void insert(T&& element, size_t position); // Move version of insert
 	T& operator[](size_t index);
 	const T& operator[](size_t index) const;
 	size_t getSize() const;
@@ -61,10 +63,10 @@ void MyVector<T>::resize()
 
 	for (size_t i = 0; i < size; i++)
 	{
-		temp[i] = std::move(data[i]);
+		temp[i] = std::move(data[i]); // Use move in resize too
 	}
 
-	delete[] data; 
+	delete[] data; // Don't call free() here, just delete the array
 	data = temp;
 }
 
@@ -101,6 +103,7 @@ MyVector<T>& MyVector<T>::operator=(const MyVector<T>& other)
 	return *this;
 }
 
+// Move assignment operator
 template<typename T>
 MyVector<T>& MyVector<T>::operator=(MyVector<T>&& other) noexcept
 {
@@ -134,6 +137,7 @@ void MyVector<T>::push_back(const T& element)
 	data[size++] = element;
 }
 
+// Move version of push_back
 template<typename T>
 void MyVector<T>::push_back(T&& element)
 {
@@ -153,7 +157,7 @@ T MyVector<T>::pop_back()
 		throw std::out_of_range("Size is 0, can't pop_back");
 	}
 	size--;
-	return std::move(data[size]);
+	return std::move(data[size]); // Use move for pop_back too
 }
 
 template<typename T>
@@ -169,15 +173,40 @@ void MyVector<T>::insert(const T& element, size_t index)
 		resize();
 	}
 
-	T temp = std::move(data[index]);
-	data[index] = element;
-	for (size_t i = index + 1; i < size; i++)
+	// Shift elements to the right, starting from the end
+	for (size_t i = size; i > index; i--)
 	{
-		T temp1 = std::move(data[i]);
-		data[i] = std::move(temp);
-		temp = std::move(temp1);
+		data[i] = std::move(data[i - 1]);
 	}
-	data[size++] = std::move(temp);
+
+	// Insert the new element
+	data[index] = element;
+	size++;
+}
+
+// Move version of insert
+template<typename T>
+void MyVector<T>::insert(T&& element, size_t index)
+{
+	if (index >= size)
+	{
+		throw std::out_of_range("Position must be less than size");
+	}
+
+	if (size + 1 >= capacity)
+	{
+		resize();
+	}
+
+	// Shift elements to the right, starting from the end
+	for (size_t i = size; i > index; i--)
+	{
+		data[i] = std::move(data[i - 1]);
+	}
+
+	// Insert the new element using move
+	data[index] = std::move(element);
+	size++;
 }
 
 template<typename T>
@@ -219,11 +248,11 @@ void MyVector<T>::print() const
 {
 	if (size <= 0)
 	{
-		cout << "Vector is empty\n";
+		std::cout << "Vector is empty\n";
 	}
 	for (size_t i = 0; i < size; i++)
 	{
-		cout << data[i] << " ";
+		std::cout << data[i] << " ";
 	}
-	cout << std::endl;
+	std::cout << std::endl;
 }

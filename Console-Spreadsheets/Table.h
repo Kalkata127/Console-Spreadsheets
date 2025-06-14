@@ -11,41 +11,34 @@ private:
     MyVector<MyVector<std::unique_ptr<BaseCell>>> cells;
     size_t numRows;
     size_t numCols;
+    bool autoFit;
+    int visibleCellSymbols;
 
-    // Helper methods
     void initializeCell(size_t row, size_t col);
     bool isValidPosition(size_t row, size_t col) const;
+    MyVector<size_t> calculateColumnWidths() const;
+    MyString formatCellContent(const MyString& content, size_t width) const;
 
 public:
-    // Constructors
     Table();
     Table(size_t rows, size_t cols);
-
-    // Destructor
+    Table(size_t rows, size_t cols, bool autoFit, int visibleCellSymbols);
     ~Table() = default;
 
-    // Cell operations
     void setCell(size_t row, size_t col, const MyString& input);
     BaseCell* getCell(size_t row, size_t col) const;
 
-    // Table operations
-    void addRow();
-    void addColumn();
-    void insertRow(size_t index);
-    void insertColumn(size_t index);
-    void removeRow(size_t index);
-    void removeColumn(size_t index);
-
-    // Size operations
-    void resize(size_t newRows, size_t newCols);
     size_t getRowCount() const;
     size_t getColumnCount() const;
 
-    // Display operations
+    void setAutoFit(bool autoFit);
+    void setVisibleCellSymbols(int symbols);
+    bool getAutoFit() const;
+    int getVisibleCellSymbols() const;
+
     void display() const;
     void printCell(size_t row, size_t col) const;
 
-    // Utility
     void clear();
     bool isEmpty(size_t row, size_t col) const;
 };

@@ -1,5 +1,5 @@
 #pragma once
-#include "MyString.h"  // Include full header instead of forward declaration
+#include "MyString.h"
 
 class BaseCell {
 public:
