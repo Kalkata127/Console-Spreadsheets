@@ -31,6 +31,14 @@ public:
     size_t getRowCount() const;
     size_t getColumnCount() const;
 
+    void addRow();
+    void addColumn();
+    void insertRow(size_t index);
+    void insertColumn(size_t index);
+    void removeRow(size_t index);
+    void removeColumn(size_t index);
+    void resize(size_t newRows, size_t newCols);
+
     void setAutoFit(bool autoFit);
     void setVisibleCellSymbols(int symbols);
     bool getAutoFit() const;

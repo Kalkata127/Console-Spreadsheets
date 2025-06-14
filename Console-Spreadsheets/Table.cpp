@@ -118,6 +118,117 @@ int Table::getVisibleCellSymbols() const {
     return visibleCellSymbols;
 }
 
+
+void Table::addRow() {
+    MyVector<unique_ptr<BaseCell>> newRow;
+    for (size_t col = 0; col < numCols; col++) {
+        unique_ptr<BaseCell> emptyCell = nullptr;
+        newRow.push_back(move(emptyCell));
+    }
+    cells.push_back(move(newRow));
+    numRows++;
+}
+
+void Table::addColumn() {
+    for (size_t row = 0; row < numRows; row++) {
+        unique_ptr<BaseCell> emptyCell = nullptr;
+        cells[row].push_back(move(emptyCell));
+    }
+    numCols++;
+}
+
+void Table::insertRow(size_t index) {
+    if (index > numRows) {
+        cout << "Error: Invalid row index " << index << endl;
+        return;
+    }
+
+    MyVector<unique_ptr<BaseCell>> newRow;
+    for (size_t col = 0; col < numCols; col++) {
+        unique_ptr<BaseCell> emptyCell = nullptr;
+        newRow.push_back(move(emptyCell));
+    }
+
+    cells.insert(move(newRow), index);
+    numRows++;
+}
+
+void Table::insertColumn(size_t index) {
+    if (index > numCols) {
+        cout << "Error: Invalid column index " << index << endl;
+        return;
+    }
+
+    for (size_t row = 0; row < numRows; row++) {
+        unique_ptr<BaseCell> emptyCell = nullptr;
+        cells[row].insert(move(emptyCell), index);
+    }
+    numCols++;
+}
+
+void Table::removeRow(size_t index) {
+    if (index >= numRows) {
+        cout << "Error: Invalid row index " << index << endl;
+        return;
+    }
+
+    if (numRows <= 1) {
+        cout << "Error: Cannot remove last row" << endl;
+        return;
+    }
+
+    for (size_t i = index; i < numRows - 1; i++) {
+        cells[i] = move(cells[i + 1]);
+    }
+
+    cells.pop_back();
+    numRows--;
+}
+
+void Table::removeColumn(size_t index) {
+    if (index >= numCols) {
+        cout << "Error: Invalid column index " << index << endl;
+        return;
+    }
+
+    if (numCols <= 1) {
+        cout << "Error: Cannot remove last column" << endl;
+        return;
+    }
+
+    for (size_t row = 0; row < numRows; row++) {
+        for (size_t col = index; col < numCols - 1; col++) {
+            cells[row][col] = move(cells[row][col + 1]);
+        }
+        cells[row].pop_back();
+    }
+    numCols--;
+}
+
+void Table::resize(size_t newRows, size_t newCols) {
+    if (newRows > numRows) {
+        while (numRows < newRows) {
+            addRow();
+        }
+    }
+    else if (newRows < numRows) {
+        while (numRows > newRows && numRows > 1) {
+            removeRow(numRows - 1);
+        }
+    }
+
+    if (newCols > numCols) {
+        while (numCols < newCols) {
+            addColumn();
+        }
+    }
+    else if (newCols < numCols) {
+        while (numCols > newCols && numCols > 1) {
+            removeColumn(numCols - 1);
+        }
+    }
+}
+
 MyVector<size_t> Table::calculateColumnWidths() const {
     MyVector<size_t> widths;
     size_t globalMaxWidth = 1;
