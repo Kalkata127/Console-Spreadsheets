@@ -290,46 +290,54 @@ MyVector<size_t> Table::calculateColumnWidths() const {
     return widths;
 }
 
+// Add this to Table.cpp if it's missing or replace the existing one
 MyString Table::formatCellContent(const MyString& content, size_t width) const {
     size_t contentLength = content.length();
 
-    MyString displayContent = content;
-    if (contentLength > width - 2) {
-        contentLength = width - 2;
-
-        char* buffer = new char[contentLength + 1];
-        for (size_t i = 0; i < contentLength; i++) {
-            buffer[i] = content.data()[i];
+    // If content is longer than width, truncate it
+    if (contentLength >= width) {
+        if (width <= 3) {
+            // If width is very small, just return dots
+            MyString result;
+            for (size_t i = 0; i < width; i++) {
+                result = result + MyString(".");
+            }
+            return result;
         }
-        buffer[contentLength] = '\0';
-        displayContent = MyString(buffer);
-        delete[] buffer;
+        else {
+            // Truncate and add "..." at the end
+            MyString result;
+            for (size_t i = 0; i < width - 3; i++) {
+                char buffer[2];
+                buffer[0] = content.data()[i];
+                buffer[1] = '\0';
+                result = result + MyString(buffer);
+            }
+            result = result + MyString("...");
+            return result;
+        }
     }
 
-    // Calculate padding
-    size_t totalPadding = width - displayContent.length();
-    size_t leftPadding = totalPadding / 2;
-    size_t rightPadding = totalPadding - leftPadding;
+    // If content is shorter, pad with spaces
+    MyString result = content;
+    size_t spacesToAdd = width - contentLength;
 
-    if (totalPadding % 2 == 1) {
-        rightPadding = leftPadding - 1;
+    // Add spaces to center the content (or left-align if you prefer)
+    size_t leftSpaces = spacesToAdd / 2;
+    size_t rightSpaces = spacesToAdd - leftSpaces;
+
+    // Add left padding
+    for (size_t i = 0; i < leftSpaces; i++) {
+        result = MyString(" ") + result;
     }
 
-    MyString result;
-
-    for (size_t i = 0; i < leftPadding; i++) {
-        result = result + MyString(" ");
-    }
-
-    result = result + displayContent;
-
-    for (size_t i = 0; i < rightPadding; i++) {
+    // Add right padding
+    for (size_t i = 0; i < rightSpaces; i++) {
         result = result + MyString(" ");
     }
 
     return result;
 }
-
 void Table::display() const {
     MyVector<size_t> columnWidths;
 

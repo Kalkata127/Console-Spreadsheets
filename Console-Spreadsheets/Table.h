@@ -45,8 +45,8 @@ public:
     int getVisibleCellSymbols() const;
 
     void display() const;
-    void printCell(size_t row, size_t col) const;
+    //void printCell(size_t row, size_t col) const;
 
-    void clear();
-    bool isEmpty(size_t row, size_t col) const;
+    //void clear();
+    //bool isEmpty(size_t row, size_t col) const;
 };

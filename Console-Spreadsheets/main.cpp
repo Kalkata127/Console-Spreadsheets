@@ -1,12 +1,14 @@
-#include <iostream>
-#include <memory>
-#include "CellFactory.h"
+#include "ConsoleUI.h"
 #include "Table.h"
-#include "MyString.h"
-
-using namespace std;
+#include <iostream>
 
 int main() {
+
+    Table table(5, 5);
+
+    ConsoleUI ui(&table);
+
+    ui.run();
 
     return 0;
 }

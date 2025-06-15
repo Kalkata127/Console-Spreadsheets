@@ -128,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CellFactory.cpp" />
+    <ClCompile Include="ConsoleUI.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyString.cpp" />
     <ClCompile Include="ReferenceCell.cpp" />
@@ -137,6 +138,7 @@
   <ItemGroup>
     <ClInclude Include="BaseCell.h" />
     <ClInclude Include="CellFactory.h" />
+    <ClInclude Include="ConsoleUI.h" />
     <ClInclude Include="MyString.h" />
     <ClInclude Include="MyVector.hpp" />
     <ClInclude Include="ReferenceCell.h" />
