@@ -290,14 +290,11 @@ MyVector<size_t> Table::calculateColumnWidths() const {
     return widths;
 }
 
-// Add this to Table.cpp if it's missing or replace the existing one
 MyString Table::formatCellContent(const MyString& content, size_t width) const {
     size_t contentLength = content.length();
 
-    // If content is longer than width, truncate it
     if (contentLength >= width) {
         if (width <= 3) {
-            // If width is very small, just return dots
             MyString result;
             for (size_t i = 0; i < width; i++) {
                 result = result + MyString(".");
@@ -305,7 +302,6 @@ MyString Table::formatCellContent(const MyString& content, size_t width) const {
             return result;
         }
         else {
-            // Truncate and add "..." at the end
             MyString result;
             for (size_t i = 0; i < width - 3; i++) {
                 char buffer[2];
@@ -318,20 +314,19 @@ MyString Table::formatCellContent(const MyString& content, size_t width) const {
         }
     }
 
-    // If content is shorter, pad with spaces
     MyString result = content;
     size_t spacesToAdd = width - contentLength;
 
-    // Add spaces to center the content (or left-align if you prefer)
+    // Add spaces to center the content 
     size_t leftSpaces = spacesToAdd / 2;
     size_t rightSpaces = spacesToAdd - leftSpaces;
 
-    // Add left padding
+    // left padding
     for (size_t i = 0; i < leftSpaces; i++) {
         result = MyString(" ") + result;
     }
 
-    // Add right padding
+    // right padding
     for (size_t i = 0; i < rightSpaces; i++) {
         result = result + MyString(" ");
     }

@@ -1,23 +1,30 @@
-#pragma once
+#ifndef FORMULACELL_H
+#define FORMULACELL_H
 
 #include "BaseCell.h"
 #include "MyString.h"
 #include "MyVector.hpp"
 
-class Table; 
+class Table; // Forward declaration
 
 enum class FormulaType {
     SUM,
-    // Future formulas 
+    AVERAGE,
+    MAX,
+    LEN,
+    CONCAT,
+    SUBSTR,
+    COUNT
 };
 
+// Represents a single parameter in a formula
 struct FormulaParameter {
     enum Type {
-        SINGLE_CELL,    
-        CELL_RANGE,     
-        INTEGER_VALUE, 
-        BOOLEAN_VALUE,  
-        STRING_VALUE    
+        SINGLE_CELL,    // A1
+        CELL_RANGE,     // A1:B5
+        INTEGER_VALUE,  // 42
+        BOOLEAN_VALUE,  // true/false
+        STRING_VALUE    // "text"
     };
 
     Type type;
@@ -43,11 +50,21 @@ private:
     FormulaType formulaType;
     MyVector<FormulaParameter> parameters;
     Table* tablePtr;
+    mutable bool hasError;
+    mutable MyString errorMessage;
 
     // Helper methods
     double evaluateParameter(const FormulaParameter& param) const;
     MyVector<double> getParameterValues(const FormulaParameter& param) const;
+    MyVector<MyString> getParameterStringValues(const FormulaParameter& param) const;
+    bool hasErrorInParameters() const;
     double calculateSum() const;
+    double calculateAverage() const;
+    double calculateMax() const;
+    int calculateLen() const;
+    MyString calculateConcat() const;
+    MyString calculateSubstr() const;
+    int calculateCount() const;
 
 public:
     FormulaCell(FormulaType type, const MyVector<FormulaParameter>& params);
@@ -63,6 +80,9 @@ public:
     MyString getType() const override;
     BaseCell* clone() const override;
 
+    // Formula-specific 
     FormulaType getFormulaType() const;
     const MyVector<FormulaParameter>& getParameters() const;
 };
+
+#endif

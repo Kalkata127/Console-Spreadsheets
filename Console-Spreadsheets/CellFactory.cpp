@@ -1,6 +1,5 @@
 ﻿#include "CellFactory.h"
 #include "Table.h"
-#include <limits>
 
 std::unique_ptr<BaseCell> CellFactory::createCell(const MyString& input) {
     return createCell(input, nullptr);
@@ -25,7 +24,7 @@ std::unique_ptr<BaseCell> CellFactory::createCell(const MyString& input, Table* 
         MyString reference(refBuffer);
         delete[] refBuffer;
 
-        // Check if it's a formula (contains parentheses)
+        // Check if it's a formula
         bool hasOpenParen = false;
         bool hasCloseParen = false;
         for (size_t i = 0; i < reference.length(); i++) {
@@ -182,7 +181,7 @@ bool CellFactory::parseFormula(const MyString& input, MyString& formulaName, MyS
         }
     }
 
-    // Find closing parenthesis (last one)
+    // Find closing parenthesis 
     for (size_t i = input.length(); i > 0; i--) {
         if (str[i - 1] == ')') {
             closeParenPos = i - 1;
@@ -225,10 +224,28 @@ FormulaType CellFactory::getFormulaType(const MyString& formulaName) {
     if (formulaName == MyString("SUM")) {
         return FormulaType::SUM;
     }
-    // Add other formulas here as they're implemented
+    else if (formulaName == MyString("AVERAGE")) {
+        return FormulaType::AVERAGE;
+    }
+    else if (formulaName == MyString("MAX")) {
+        return FormulaType::MAX;
+    }
+    else if (formulaName == MyString("LEN")) {
+        return FormulaType::LEN;
+    }
+    else if (formulaName == MyString("CONCAT")) {
+        return FormulaType::CONCAT;
+    }
+    else if (formulaName == MyString("SUBSTR")) {
+        return FormulaType::SUBSTR;
+    }
+    else if (formulaName == MyString("COUNT")) {
+        return FormulaType::COUNT;
+    }
 
-    return FormulaType::SUM; // Default fallback
+    return FormulaType::SUM; // Default
 }
+
 
 MyVector<FormulaParameter> CellFactory::parseFormulaParameters(const MyString& parametersString, Table* table) {
     MyVector<FormulaParameter> parameters;
@@ -237,7 +254,7 @@ MyVector<FormulaParameter> CellFactory::parseFormulaParameters(const MyString& p
         return parameters;
     }
 
-    // Split by commas (simple approach - doesn't handle nested formulas)
+    // Split by commas 
     const char* str = parametersString.data();
     size_t start = 0;
 
