@@ -1,27 +1,73 @@
 #include "ConsoleUI.h"
 #include <iostream>
+#include <sstream>
+
+#include <fstream>
+
+struct SimpleConfig {
+    int initialTableRows;
+    int initialTableCols;
+    bool autoFit;
+    int visibleCellSymbols;
+};
+
+bool loadSimpleConfig(const MyString& filename, SimpleConfig& config) {
+    ifstream file(filename.data());
+
+    if (!file.is_open()) {
+        cout << "ERROR: Could not open config file: " << filename.data() << endl;
+        return false;
+    }
+
+    // Set defaults
+    config.initialTableRows = 5;
+    config.initialTableCols = 5;
+    config.autoFit = true;
+    config.visibleCellSymbols = 10;
+
+    char line[1000];
+    while (file.getline(line, 1000)) {
+        MyString lineStr(line);
+        if (lineStr.length() == 0) continue;
+
+        // Simple parsing
+        const char* data = lineStr.data();
+        if (strstr(data, "initialTableRows:")) {
+            config.initialTableRows = atoi(strchr(data, ':') + 1);
+        }
+        else if (strstr(data, "initialTableCols:")) {
+            config.initialTableCols = atoi(strchr(data, ':') + 1);
+        }
+        else if (strstr(data, "autoFit:")) {
+            config.autoFit = (strstr(data, "true") != nullptr);
+        }
+        else if (strstr(data, "visibleCellSymbols:")) {
+            config.visibleCellSymbols = atoi(strchr(data, ':') + 1);
+        }
+    }
+
+    file.close();
+    return true;
+}
 
 ConsoleUI::ConsoleUI() : currentTable(nullptr), running(false) {}
 
 ConsoleUI::ConsoleUI(Table* table) : currentTable(table), running(false) {}
 
+ConsoleUI::~ConsoleUI() {
+}
 void ConsoleUI::setTable(Table* table) {
     currentTable = table;
 }
 
 void ConsoleUI::run() {
-    if (!currentTable) {
-        cout << "No table loaded. Please load a table first.\n";
-        return;
-    }
-
     running = true;
     cout << "=== Spreadsheet Console Interface ===\n";
-    cout << "Type 'show' to display table, 'exit' to quit\n\n";
+    cout << "Type 'open {tableName} {configFile}' to load a table\n";
+    cout << "Type 'new {configFile}' to create a new table\n";
+    cout << "Type 'exit' to quit\n\n";
 
-    currentTable->display();
-
-    char inputBuffer[1024]; // Buffer 
+    char inputBuffer[1000]; // Buffer for input
     while (running) {
         cout << "\n> ";
         cin.getline(inputBuffer, 1000);
@@ -46,6 +92,16 @@ void ConsoleUI::processCommand(const MyString& command) {
     if (firstToken == MyString("exit")) {
         handleExit();
     }
+    else if (firstToken == MyString("open") && tokens.getSize() >= 3) {
+        handleOpen(tokens);
+    }
+    else if (firstToken == MyString("new") && tokens.getSize() >= 2) {
+        handleNew(tokens);
+    }
+    else if (!currentTable) {
+        printError(MyString("No table loaded. Use 'open {tableName} {configFile}' or 'new {configFile}' first."));
+        return;
+    }
     else if (firstToken == MyString("show")) {
         handleDisplay();
     }
@@ -62,7 +118,7 @@ void ConsoleUI::processCommand(const MyString& command) {
         handleCellDelete(tokens);
     }
     else if (tokens.getSize() >= 2 && tokens[1].data()[0] == '=') {
-        // Check if it's a formula or simple reference
+        // Check if it's a formula (contains parentheses) or simple reference
         MyString formula = tokens[1];
         bool hasParentheses = false;
         for (size_t i = 0; i < formula.length(); i++) {
@@ -133,7 +189,7 @@ bool ConsoleUI::parseCellReference(const MyString& cellRef, size_t& row, size_t&
 
     const char* str = cellRef.data();
 
-    // Parse column (A, B, C..)
+    // Parse column (A, B, C, etc.)
     if (str[0] < 'A' || str[0] > 'Z') {
         return false;
     }
@@ -151,7 +207,7 @@ bool ConsoleUI::parseCellReference(const MyString& cellRef, size_t& row, size_t&
     if (rowNum == 0) {
         return false;
     }
-    row = rowNum - 1; 
+    row = rowNum - 1; // Convert to 0-based indexing
 
     return true;
 }
@@ -426,6 +482,45 @@ void ConsoleUI::handleExit() {
     cout << "Goodbye!\n";
 }
 
+void ConsoleUI::handleOpen(const MyVector<MyString>& tokens) {
+    if (tokens.getSize() < 3) {
+        printError(MyString("Usage: open {tableName} {configFile}"));
+        return;
+    }
+
+    cout << "Note: Table loading not implemented yet. Creating new table..." << endl;
+
+    currentTable = new Table(5, 5, true, 10);
+
+    printSuccess(MyString("Table created successfully"));
+    currentTable->display();
+}
+
+void ConsoleUI::handleNew(const MyVector<MyString>& tokens) {
+    if (tokens.getSize() < 2) {
+        printError(MyString("Usage: new {configFile}"));
+        return;
+    }
+
+    MyString configFile = tokens[1];
+
+    // Load config
+    SimpleConfig config;
+    if (!loadSimpleConfig(configFile, config)) {
+        return;
+    }
+
+    cout << "Config loaded: " << config.initialTableRows << "x" << config.initialTableCols
+        << ", autoFit=" << (config.autoFit ? "true" : "false") << endl;
+
+    // Create table with config values
+    currentTable = new Table(config.initialTableRows, config.initialTableCols,
+        config.autoFit, config.visibleCellSymbols);
+
+    printSuccess(MyString("New table created successfully"));
+    currentTable->display();
+}
+
 void ConsoleUI::printError(const MyString& message) {
     cout << "Error: " << message.data() << "\n";
 }
@@ -436,17 +531,23 @@ void ConsoleUI::printSuccess(const MyString& message) {
 
 void ConsoleUI::showCommands() {
     cout << "\nAvailable commands:\n";
-    cout << "  {cell} insert {value}     - Insert value into cell (e.g., A1 insert 42)\n";
-    cout << "  {cell} delete             - Delete cell content (e.g., B2 delete)\n";
-    cout << "  {cell} ={referenceCell}   - Create cell reference (e.g., C3 =A1)\n";
-    cout << "  {cell} ={formula}         - Create formula (e.g., A5 =SUM(A1:C3,6))\n";
-    cout << "  add_row                   - Add row at the end\n";
-    cout << "  add_col                   - Add column at the end\n";
-    cout << "  insert_row {index}        - Insert row at index\n";
-    cout << "  insert_col {index}        - Insert column at index\n";
-    cout << "  remove_row {index}        - Remove row at index\n";
-    cout << "  remove_col {index}        - Remove column at index\n";
-    cout << "  resize {rows} {cols}      - Resize table\n";
-    cout << "  show                      - Display current table\n";
-    cout << "  exit                      - Exit program\n";
+    cout << "  open {tableName} {configFile} - Load table with config file\n";
+    cout << "  new {configFile}               - Create new table with config file\n";
+
+    if (currentTable != nullptr) {
+        cout << "  {cell} insert {value}          - Insert value into cell (e.g., A1 insert 42)\n";
+        cout << "  {cell} delete                  - Delete cell content (e.g., B2 delete)\n";
+        cout << "  {cell} ={referenceCell}        - Create cell reference (e.g., C3 =A1)\n";
+        cout << "  {cell} ={formula}              - Create formula (e.g., A5 =SUM(A1:C3,6))\n";
+        cout << "  add_row                        - Add row at the end\n";
+        cout << "  add_col                        - Add column at the end\n";
+        cout << "  insert_row {index}             - Insert row at index\n";
+        cout << "  insert_col {index}             - Insert column at index\n";
+        cout << "  remove_row {index}             - Remove row at index\n";
+        cout << "  remove_col {index}             - Remove column at index\n";
+        cout << "  resize {rows} {cols}           - Resize table\n";
+        cout << "  show                           - Display current table\n";
+    }
+
+    cout << "  exit                           - Exit program\n";
 }

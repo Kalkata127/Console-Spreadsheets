@@ -1,5 +1,4 @@
-#ifndef FORMULACELL_H
-#define FORMULACELL_H
+#pragma once
 
 #include "BaseCell.h"
 #include "MyString.h"
@@ -17,25 +16,21 @@ enum class FormulaType {
     COUNT
 };
 
-// Represents a single parameter in a formula
 struct FormulaParameter {
     enum Type {
-        SINGLE_CELL,    // A1
-        CELL_RANGE,     // A1:B5
-        INTEGER_VALUE,  // 42
-        BOOLEAN_VALUE,  // true/false
-        STRING_VALUE    // "text"
+        SINGLE_CELL,    
+        CELL_RANGE,     
+        INTEGER_VALUE,  
+        BOOLEAN_VALUE, 
+        STRING_VALUE    
     };
 
     Type type;
 
-    // For single cell
     size_t row, col;
 
-    // For cell range
     size_t startRow, startCol, endRow, endCol;
 
-    // For values
     int intValue;
     bool boolValue;
     MyString stringValue;
@@ -84,5 +79,3 @@ public:
     FormulaType getFormulaType() const;
     const MyVector<FormulaParameter>& getParameters() const;
 };
-
-#endif

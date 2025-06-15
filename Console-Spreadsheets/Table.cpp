@@ -51,7 +51,7 @@ bool Table::isValidPosition(size_t row, size_t col) const {
 
 void Table::setCell(size_t row, size_t col, const MyString& input) {
     if (!isValidPosition(row, col)) {
-        std::cout << "Error: Invalid position (" << row << ", " << col << ")" << std::endl;
+        cout << "Error: Invalid position (" << row << ", " << col << ")" << endl;
         return;
     }
 
@@ -423,4 +423,17 @@ void Table::display() const {
         }
         cout << endl;
     }
+}
+Table::~Table() {
+    cout << "Table destructor starting..." << endl;
+
+    // Properly clear each row
+    for (size_t i = 0; i < cells.getSize(); i++) {
+        // Reset all unique_ptrs first
+        for (size_t j = 0; j < cells[i].getSize(); j++) {
+            cells[i][j].reset(); 
+        }
+    }
+
+    cout << "Table destructor ending..." << endl;
 }

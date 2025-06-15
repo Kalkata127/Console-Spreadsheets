@@ -134,6 +134,7 @@
     <ClCompile Include="MyString.cpp" />
     <ClCompile Include="ReferenceCell.cpp" />
     <ClCompile Include="Table.cpp" />
+    <ClCompile Include="TableConfig.cpp" />
     <ClCompile Include="ValueCell.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -145,6 +146,10 @@
     <ClInclude Include="MyVector.hpp" />
     <ClInclude Include="ReferenceCell.h" />
     <ClInclude Include="Table.h" />
+    <ClInclude Include="TableConfig.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

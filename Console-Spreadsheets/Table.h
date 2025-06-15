@@ -23,7 +23,7 @@ public:
     Table();
     Table(size_t rows, size_t cols);
     Table(size_t rows, size_t cols, bool autoFit, int visibleCellSymbols);
-    ~Table() = default;
+    ~Table();
 
     void setCell(size_t row, size_t col, const MyString& input);
     BaseCell* getCell(size_t row, size_t col) const;

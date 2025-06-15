@@ -25,6 +25,7 @@ public:
 	size_t getSize() const;
 	size_t getCapacity() const;
 	void print() const;
+	void clear();
 private:
 	T* data;
 	size_t size;
@@ -49,13 +50,29 @@ void MyVector<T>::copyFrom(const MyVector<T>& other)
 }
 
 template<typename T>
+void MyVector<T>::clear() {
+	// Properly destroy all elements first
+	for (size_t i = 0; i < size; i++) {
+		data[i].~T(); // Explicitly call destructor
+	}
+	size = 0;
+}
+
+template<typename T>
 void MyVector<T>::free()
 {
-	delete[] data;
-	data = nullptr;
+	if (data != nullptr) {
+		// Clear all elements first
+		for (size_t i = 0; i < size; i++) {
+			data[i].~T(); // Explicitly destroy each element
+		}
+		delete[] data; 
+		data = nullptr;
+	}
 	size = 0;
 	capacity = 0;
 }
+
 
 template<typename T>
 void MyVector<T>::resize()
@@ -159,7 +176,9 @@ T MyVector<T>::pop_back()
 		throw out_of_range("Size is 0, can't pop_back");
 	}
 	size--;
-	return move(data[size]);
+	T result = move(data[size]);
+	data[size].~T(); // Explicitly destroy the moved-from object
+	return result;
 }
 
 template<typename T>

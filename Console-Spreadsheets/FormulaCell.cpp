@@ -40,7 +40,6 @@ MyString FormulaCell::toString() const {
         // Convert double to string
         int intResult = static_cast<int>(result);
         if (result == static_cast<double>(intResult)) {
-            // It's a whole number, display as integer
             if (intResult == 0) return MyString("0");
 
             bool isNegative = intResult < 0;
@@ -301,9 +300,9 @@ double FormulaCell::evaluate() const {
     case FormulaType::LEN:
         return static_cast<double>(calculateLen());
     case FormulaType::CONCAT:
-        return 0.0; // CONCAT returns string, evaluate returns 0
+        return 0.0; 
     case FormulaType::SUBSTR:
-        return 0.0; // SUBSTR returns string, evaluate returns 0
+        return 0.0; 
     case FormulaType::COUNT:
         return static_cast<double>(calculateCount());
     default:
