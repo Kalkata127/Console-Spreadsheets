@@ -1,7 +1,6 @@
 #include "ConsoleUI.h"
 #include <iostream>
 #include <sstream>
-
 #include <fstream>
 
 struct SimpleConfig {
@@ -10,6 +9,46 @@ struct SimpleConfig {
     bool autoFit;
     int visibleCellSymbols;
 };
+
+// Simple string to int converter (replaces atoi)
+int stringToInt(const char* str) {
+    int result = 0;
+    int i = 0;
+    bool negative = false;
+
+    if (str[0] == '-') {
+        negative = true;
+        i = 1;
+    }
+
+    while (str[i] >= '0' && str[i] <= '9') {
+        result = result * 10 + (str[i] - '0');
+        i++;
+    }
+
+    return negative ? -result : result;
+}
+
+// Simple string search (replaces strstr)
+bool stringContains(const char* haystack, const char* needle) {
+    int hayLen = 0, needleLen = 0;
+
+    // Get lengths
+    while (haystack[hayLen]) hayLen++;
+    while (needle[needleLen]) needleLen++;
+
+    for (int i = 0; i <= hayLen - needleLen; i++) {
+        bool match = true;
+        for (int j = 0; j < needleLen; j++) {
+            if (haystack[i + j] != needle[j]) {
+                match = false;
+                break;
+            }
+        }
+        if (match) return true;
+    }
+    return false;
+}
 
 bool loadSimpleConfig(const MyString& filename, SimpleConfig& config) {
     ifstream file(filename.data());
@@ -27,22 +66,33 @@ bool loadSimpleConfig(const MyString& filename, SimpleConfig& config) {
 
     char line[1000];
     while (file.getline(line, 1000)) {
-        MyString lineStr(line);
-        if (lineStr.length() == 0) continue;
-
-        // Simple parsing
-        const char* data = lineStr.data();
-        if (strstr(data, "initialTableRows:")) {
-            config.initialTableRows = atoi(strchr(data, ':') + 1);
+        if (stringContains(line, "initialTableRows:")) {
+            // Find the : and get number after it
+            for (int i = 0; line[i]; i++) {
+                if (line[i] == ':') {
+                    config.initialTableRows = stringToInt(line + i + 1);
+                    break;
+                }
+            }
         }
-        else if (strstr(data, "initialTableCols:")) {
-            config.initialTableCols = atoi(strchr(data, ':') + 1);
+        else if (stringContains(line, "initialTableCols:")) {
+            for (int i = 0; line[i]; i++) {
+                if (line[i] == ':') {
+                    config.initialTableCols = stringToInt(line + i + 1);
+                    break;
+                }
+            }
         }
-        else if (strstr(data, "autoFit:")) {
-            config.autoFit = (strstr(data, "true") != nullptr);
+        else if (stringContains(line, "autoFit:")) {
+            config.autoFit = stringContains(line, "true");
         }
-        else if (strstr(data, "visibleCellSymbols:")) {
-            config.visibleCellSymbols = atoi(strchr(data, ':') + 1);
+        else if (stringContains(line, "visibleCellSymbols:")) {
+            for (int i = 0; line[i]; i++) {
+                if (line[i] == ':') {
+                    config.visibleCellSymbols = stringToInt(line + i + 1);
+                    break;
+                }
+            }
         }
     }
 
@@ -55,7 +105,9 @@ ConsoleUI::ConsoleUI() : currentTable(nullptr), running(false) {}
 ConsoleUI::ConsoleUI(Table* table) : currentTable(table), running(false) {}
 
 ConsoleUI::~ConsoleUI() {
+    // Don't delete currentTable to avoid crash
 }
+
 void ConsoleUI::setTable(Table* table) {
     currentTable = table;
 }
@@ -104,6 +156,9 @@ void ConsoleUI::processCommand(const MyString& command) {
     }
     else if (firstToken == MyString("show")) {
         handleDisplay();
+    }
+    else if (firstToken == MyString("save") && tokens.getSize() >= 2) {
+        handleSave(tokens);
     }
     else if (firstToken == MyString("add_row")) {
         handleAddRow();
@@ -488,11 +543,26 @@ void ConsoleUI::handleOpen(const MyVector<MyString>& tokens) {
         return;
     }
 
-    cout << "Note: Table loading not implemented yet. Creating new table..." << endl;
+    MyString tableName = tokens[1];
+    MyString configFile = tokens[2];
 
-    currentTable = new Table(5, 5, true, 10);
+    // Load config first
+    SimpleConfig config;
+    if (!loadSimpleConfig(configFile, config)) {
+        return;
+    }
 
-    printSuccess(MyString("Table created successfully"));
+    // Create new table with config
+    currentTable = new Table(config.initialTableRows, config.initialTableCols,
+        config.autoFit, config.visibleCellSymbols);
+
+    // Try to load table data
+    MyString tableFile = tableName + MyString(".txt");
+    if (!currentTable->loadFromFile(tableFile)) {
+        cout << "Note: Could not load " << tableFile.data() << ", created empty table" << endl;
+    }
+
+    printSuccess(MyString("Table loaded successfully"));
     currentTable->display();
 }
 
@@ -521,6 +591,26 @@ void ConsoleUI::handleNew(const MyVector<MyString>& tokens) {
     currentTable->display();
 }
 
+void ConsoleUI::handleSave(const MyVector<MyString>& tokens) {
+    if (!currentTable) {
+        printError(MyString("No table to save"));
+        return;
+    }
+
+    if (tokens.getSize() < 2) {
+        printError(MyString("Usage: save {filename}"));
+        return;
+    }
+
+    MyString filename = tokens[1] + MyString(".txt");
+    if (currentTable->saveToFile(filename)) {
+        printSuccess(MyString("Table saved successfully"));
+    }
+    else {
+        printError(MyString("Failed to save table"));
+    }
+}
+
 void ConsoleUI::printError(const MyString& message) {
     cout << "Error: " << message.data() << "\n";
 }
@@ -539,6 +629,7 @@ void ConsoleUI::showCommands() {
         cout << "  {cell} delete                  - Delete cell content (e.g., B2 delete)\n";
         cout << "  {cell} ={referenceCell}        - Create cell reference (e.g., C3 =A1)\n";
         cout << "  {cell} ={formula}              - Create formula (e.g., A5 =SUM(A1:C3,6))\n";
+        cout << "  save {filename}                - Save table to file\n";
         cout << "  add_row                        - Add row at the end\n";
         cout << "  add_col                        - Add column at the end\n";
         cout << "  insert_row {index}             - Insert row at index\n";

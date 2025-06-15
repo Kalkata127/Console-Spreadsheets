@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <fstream>  
+#include <iostream> 
 #include "MyVector.hpp"
 #include "BaseCell.h"
 #include "CellFactory.h"
@@ -18,6 +20,7 @@ private:
     bool isValidPosition(size_t row, size_t col) const;
     MyVector<size_t> calculateColumnWidths() const;
     MyString formatCellContent(const MyString& content, size_t width) const;
+    bool loadCellsFromFile(const MyString& filename);
 
 public:
     Table();
@@ -45,8 +48,7 @@ public:
     int getVisibleCellSymbols() const;
 
     void display() const;
-    //void printCell(size_t row, size_t col) const;
 
-    //void clear();
-    //bool isEmpty(size_t row, size_t col) const;
+    bool saveToFile(const MyString& filename);
+    bool loadFromFile(const MyString& filename);
 };

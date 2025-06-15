@@ -5,6 +5,9 @@
 const int defRows = 3;
 const int defCols = 3;
 
+extern int stringToInt(const char* str);
+extern bool stringContains(const char* haystack, const char* needle);
+
 Table::Table() : numRows(defRows), numCols(defCols), autoFit(true), visibleCellSymbols(7) {
     for (size_t i = 0; i < numRows; i++) {
         MyVector<unique_ptr<BaseCell>> row;
@@ -436,4 +439,130 @@ Table::~Table() {
     }
 
     cout << "Table destructor ending..." << endl;
+}
+
+// Simple implementation of Table file operations
+bool Table::saveToFile(const MyString& filename) {
+    std::ofstream file(filename.data());
+
+    if (!file.is_open()) {
+        cout << "ERROR: Could not create file: " << filename.data() << endl;
+        return false;
+    }
+
+    // Write table dimensions
+    file << "ROWS:" << numRows << endl;
+    file << "COLS:" << numCols << endl;
+    file << "AUTOFIT:" << (autoFit ? "true" : "false") << endl;
+    file << "SYMBOLS:" << visibleCellSymbols << endl;
+
+    // Write each non-empty cell
+    for (size_t row = 0; row < numRows; row++) {
+        for (size_t col = 0; col < numCols; col++) {
+            if (cells[row][col] != nullptr) {
+                MyString cellValue = cells[row][col]->toString();
+
+                // Format: CELL:row,col,value
+                file << "CELL:" << row << "," << col << "," << cellValue.data() << endl;
+            }
+        }
+    }
+
+    file.close();
+    cout << "Table saved to " << filename.data() << endl;
+    return true;
+}
+
+bool Table::loadFromFile(const MyString& filename) {
+    std::ifstream file(filename.data());
+
+    if (!file.is_open()) {
+        cout << "ERROR: Could not open file: " << filename.data() << endl;
+        return false;
+    }
+
+    size_t newRows = 5, newCols = 5;  // defaults
+    bool newAutoFit = true;
+    int newSymbols = 10;
+
+    char line[1000];
+    while (file.getline(line, 1000)) {
+        if (stringContains(line, "ROWS:")) {
+            newRows = stringToInt(line + 5);
+        }
+        else if (stringContains(line, "COLS:")) {
+            newCols = stringToInt(line + 5);
+        }
+        else if (stringContains(line, "AUTOFIT:")) {
+            newAutoFit = stringContains(line, "true");
+        }
+        else if (stringContains(line, "SYMBOLS:")) {
+            newSymbols = stringToInt(line + 8);
+        }
+    }
+
+    file.close();
+
+    // Resize table
+    if (newRows > 0 && newCols > 0) {
+        resize(newRows, newCols);
+        autoFit = newAutoFit;
+        visibleCellSymbols = newSymbols;
+
+        // Load cells in second pass
+        return loadCellsFromFile(filename);
+    }
+
+    return false;
+}
+
+bool Table::loadCellsFromFile(const MyString& filename) {
+    std::ifstream file(filename.data());
+    if (!file.is_open()) return false;
+
+    char line[1000];
+    while (file.getline(line, 1000)) {
+        if (stringContains(line, "CELL:")) {
+            // Parse: CELL:row,col,value
+            // Simple manual parsing
+            char* data = line + 5; // Skip "CELL:"
+
+            // Find first comma
+            int comma1 = -1;
+            for (int i = 0; data[i]; i++) {
+                if (data[i] == ',') {
+                    comma1 = i;
+                    break;
+                }
+            }
+            if (comma1 == -1) continue;
+
+            // Find second comma
+            int comma2 = -1;
+            for (int i = comma1 + 1; data[i]; i++) {
+                if (data[i] == ',') {
+                    comma2 = i;
+                    break;
+                }
+            }
+            if (comma2 == -1) continue;
+
+            // Extract row, col, value
+            data[comma1] = '\0';
+            data[comma2] = '\0';
+
+            size_t row = stringToInt(data);
+            size_t col = stringToInt(data + comma1 + 1);
+            MyString value(data + comma2 + 1);
+
+            // Set the cell
+            if (row < numRows && col < numCols) {
+                setCell(row, col, value);
+            }
+        }
+    }
+
+    file.close();
+    cout << "Table loaded from " << filename.data() << endl;
+    return true;
 }

@@ -27,6 +27,7 @@ private:
     void handleExit();
     void handleOpen(const MyVector<MyString>& tokens);
     void handleNew(const MyVector<MyString>& tokens);
+    void handleSave(const MyVector<MyString>& tokens);
 
     // Utility methods
     void printError(const MyString& message);
