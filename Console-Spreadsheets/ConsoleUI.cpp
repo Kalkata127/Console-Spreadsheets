@@ -12,21 +12,19 @@ void ConsoleUI::setTable(Table* table) {
 
 void ConsoleUI::run() {
     if (!currentTable) {
-        cout << "No table loaded. Please load a table first.\n";
+        std::cout << "No table loaded. Please load a table first.\n";
         return;
     }
 
     running = true;
-    cout << "=== Spreadsheet Console Interface ===\n";
-    showCommands();
-    cout << endl;
-    cout << "Type 'show' to display table, 'exit' to quit\n\n";
+    std::cout << "=== Spreadsheet Console Interface ===\n";
+    std::cout << "Type 'show' to display table, 'exit' to quit\n\n";
 
     currentTable->display();
 
     std::string inputLine;
     while (running) {
-        cout << "\n> ";
+        std::cout << "\n> ";
         std::getline(std::cin, inputLine);
 
         if (!inputLine.empty()) {
@@ -45,6 +43,7 @@ void ConsoleUI::processCommand(const MyString& command) {
 
     MyString firstToken = tokens[0];
 
+    // Handle different command patterns
     if (firstToken == MyString("exit")) {
         handleExit();
     }
@@ -64,7 +63,22 @@ void ConsoleUI::processCommand(const MyString& command) {
         handleCellDelete(tokens);
     }
     else if (tokens.getSize() >= 2 && tokens[1].data()[0] == '=') {
-        handleCellReference(tokens);
+        // Check if it's a formula (contains parentheses) or simple reference
+        MyString formula = tokens[1];
+        bool hasParentheses = false;
+        for (size_t i = 0; i < formula.length(); i++) {
+            if (formula.data()[i] == '(' || formula.data()[i] == ')') {
+                hasParentheses = true;
+                break;
+            }
+        }
+
+        if (hasParentheses) {
+            handleCellFormula(tokens);
+        }
+        else {
+            handleCellReference(tokens);
+        }
     }
     else if (firstToken == MyString("insert_row") && tokens.getSize() >= 2) {
         handleInsertRow(tokens);
@@ -120,7 +134,7 @@ bool ConsoleUI::parseCellReference(const MyString& cellRef, size_t& row, size_t&
 
     const char* str = cellRef.data();
 
-    // Parse column (A, B, C..)
+    // Parse column (A, B, C, etc.)
     if (str[0] < 'A' || str[0] > 'Z') {
         return false;
     }
@@ -138,7 +152,7 @@ bool ConsoleUI::parseCellReference(const MyString& cellRef, size_t& row, size_t&
     if (rowNum == 0) {
         return false;
     }
-    row = rowNum - 1;
+    row = rowNum - 1; // Convert to 0-based indexing
 
     return true;
 }
@@ -248,6 +262,29 @@ void ConsoleUI::handleCellReference(const MyVector<MyString>& tokens) {
     printSuccess(MyString("Reference cell created successfully"));
 }
 
+void ConsoleUI::handleCellFormula(const MyVector<MyString>& tokens) {
+    if (tokens.getSize() < 2) {
+        printError(MyString("Usage: {cell} ={formulaName}({parameters})"));
+        return;
+    }
+
+    size_t row, col;
+    if (!parseCellReference(tokens[0], row, col)) {
+        printError(MyString("Invalid cell reference"));
+        return;
+    }
+
+    // Auto-resize if needed for formulas
+    if (row >= currentTable->getRowCount() || col >= currentTable->getColumnCount()) {
+        size_t newRows = (row >= currentTable->getRowCount()) ? row + 1 : currentTable->getRowCount();
+        size_t newCols = (col >= currentTable->getColumnCount()) ? col + 1 : currentTable->getColumnCount();
+        currentTable->resize(newRows, newCols);
+    }
+
+    currentTable->setCell(row, col, tokens[1]);
+    printSuccess(MyString("Formula cell created successfully"));
+}
+
 void ConsoleUI::handleAddRow() {
     currentTable->addRow();
     printSuccess(MyString("Row added successfully"));
@@ -259,7 +296,7 @@ void ConsoleUI::handleAddColumn() {
 }
 
 void ConsoleUI::handleInsertRow(const MyVector<MyString>& tokens) {
-
+    // Convert string to number
     const char* str = tokens[1].data();
     size_t index = 0;
     for (size_t i = 0; i < tokens[1].length(); i++) {
@@ -282,7 +319,7 @@ void ConsoleUI::handleInsertRow(const MyVector<MyString>& tokens) {
 }
 
 void ConsoleUI::handleInsertColumn(const MyVector<MyString>& tokens) {
-
+    // Convert string to number
     const char* str = tokens[1].data();
     size_t index = 0;
     for (size_t i = 0; i < tokens[1].length(); i++) {
@@ -305,7 +342,7 @@ void ConsoleUI::handleInsertColumn(const MyVector<MyString>& tokens) {
 }
 
 void ConsoleUI::handleRemoveRow(const MyVector<MyString>& tokens) {
-
+    // Convert string to number
     const char* str = tokens[1].data();
     size_t index = 0;
     for (size_t i = 0; i < tokens[1].length(); i++) {
@@ -328,7 +365,7 @@ void ConsoleUI::handleRemoveRow(const MyVector<MyString>& tokens) {
 }
 
 void ConsoleUI::handleRemoveColumn(const MyVector<MyString>& tokens) {
-
+    // Convert string to number  
     const char* str = tokens[1].data();
     size_t index = 0;
     for (size_t i = 0; i < tokens[1].length(); i++) {
@@ -387,28 +424,30 @@ void ConsoleUI::handleDisplay() {
 
 void ConsoleUI::handleExit() {
     running = false;
+    std::cout << "Goodbye!\n";
 }
 
 void ConsoleUI::printError(const MyString& message) {
-    cout << "Error: " << message.data() << "\n";
+    std::cout << "Error: " << message.data() << "\n";
 }
 
 void ConsoleUI::printSuccess(const MyString& message) {
-    cout << "Success: " << message.data() << "\n";
+    std::cout << "Success: " << message.data() << "\n";
 }
 
 void ConsoleUI::showCommands() {
-    cout << "\nAvailable commands:\n";
-    cout << "  {cell} insert {value}     - Insert value into cell (e.g., A1 insert 42)\n";
-    cout << "  {cell} delete             - Delete cell content (e.g., B2 delete)\n";
-    cout << "  {cell} ={referenceCell}   - Create cell reference (e.g., C3 =A1)\n";
-    cout << "  add_row                   - Add row at the end\n";
-    cout << "  add_col                   - Add column at the end\n";
-    cout << "  insert_row {index}        - Insert row at index\n";
-    cout << "  insert_col {index}        - Insert column at index\n";
-    cout << "  remove_row {index}        - Remove row at index\n";
-    cout << "  remove_col {index}        - Remove column at index\n";
-    cout << "  resize {rows} {cols}      - Resize table\n";
-    cout << "  show                      - Display current table\n";
-    cout << "  exit                      - Exit program\n";
+    std::cout << "\nAvailable commands:\n";
+    std::cout << "  {cell} insert {value}     - Insert value into cell (e.g., A1 insert 42)\n";
+    std::cout << "  {cell} delete             - Delete cell content (e.g., B2 delete)\n";
+    std::cout << "  {cell} ={referenceCell}   - Create cell reference (e.g., C3 =A1)\n";
+    std::cout << "  {cell} ={formula}         - Create formula (e.g., A5 =SUM(A1:C3,6))\n";
+    std::cout << "  add_row                   - Add row at the end\n";
+    std::cout << "  add_col                   - Add column at the end\n";
+    std::cout << "  insert_row {index}        - Insert row at index\n";
+    std::cout << "  insert_col {index}        - Insert column at index\n";
+    std::cout << "  remove_row {index}        - Remove row at index\n";
+    std::cout << "  remove_col {index}        - Remove column at index\n";
+    std::cout << "  resize {rows} {cols}      - Resize table\n";
+    std::cout << "  show                      - Display current table\n";
+    std::cout << "  exit                      - Exit program\n";
 }

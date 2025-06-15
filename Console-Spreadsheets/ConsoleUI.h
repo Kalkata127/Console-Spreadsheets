@@ -1,8 +1,8 @@
-#pragma once
+#ifndef CONSOLE_UI_H
+#define CONSOLE_UI_H
 
 #include "Table.h"
 #include "MyString.h"
-#include "MyVector.hpp"
 #include <iostream>
 
 class ConsoleUI {
@@ -18,6 +18,7 @@ private:
     void handleCellInsert(const MyVector<MyString>& tokens);
     void handleCellDelete(const MyVector<MyString>& tokens);
     void handleCellReference(const MyVector<MyString>& tokens);
+    void handleCellFormula(const MyVector<MyString>& tokens);
     void handleAddRow();
     void handleAddColumn();
     void handleInsertRow(const MyVector<MyString>& tokens);
@@ -43,3 +44,5 @@ public:
     void processCommand(const MyString& command);
     void showCommands();
 };
+
+#endif
